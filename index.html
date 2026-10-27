@@ -6,7 +6,7 @@
 <title>berpad</title>
 <meta name="description" content="The launchpad for the ber market. Coins that buy their own dips.">
 <meta property="og:title" content="berpad">
-<meta property="og:description" content="The launchpad for the ber market. Red candles get eaten.">
+<meta property="og:description" content="The launchpad for the ber market. Coins that buy their own dips.">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,21 +22,6 @@ a{color:inherit;text-decoration:none}
 #gl{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0}
 main{position:relative;z-index:2}
 .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
-
-/* intro */
-#intro{position:fixed;inset:0;z-index:40;pointer-events:none}
-#black{position:absolute;inset:0;background:#000;transition:opacity 1.6s ease}
-#black.off{opacity:0}
-#skip{position:absolute;right:28px;bottom:26px;pointer-events:auto;font:500 12px 'JetBrains Mono';letter-spacing:.2em;text-transform:uppercase;color:var(--mut);opacity:0;transition:opacity .8s;cursor:pointer;background:none;border:0}
-#skip.show{opacity:.8}#skip:hover{color:var(--bone)}
-#title{position:absolute;left:7vw;bottom:20vh;text-align:left;opacity:0;transition:opacity .8s}
-@media (max-width:900px){#title{left:0;right:0;bottom:12vh;text-align:center}}
-#title.show{opacity:1}
-#title h1{margin:0;font:900 clamp(56px,10vw,140px)/1 Cinzel,serif;letter-spacing:.08em;color:var(--bone);text-shadow:0 0 40px rgba(255,59,47,.35)}
-#title h1 b{color:var(--ember);font-weight:900}
-#enter{margin-top:22px;pointer-events:auto;opacity:0;transform:translateY(10px);transition:.8s}
-#enter.show{opacity:1;transform:none}
-body.entered #intro{display:none}
 
 /* nav */
 nav{position:fixed;top:16px;left:50%;transform:translate(-50%,-90px);z-index:30;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
@@ -64,7 +49,7 @@ body.entered .rail{opacity:1}
 .btn[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none}
 
 /* hero */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center}
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding-bottom:60px}
 #veil{position:absolute;inset:0;pointer-events:none;background:rgba(0,0,0,.34);-webkit-mask-image:radial-gradient(circle 320px at var(--mx,50%) var(--my,50%),transparent 0,#000 100%);mask-image:radial-gradient(circle 320px at var(--mx,50%) var(--my,50%),transparent 0,#000 100%);opacity:0;transition:opacity 1s}
 body.entered #veil{opacity:1}
 .hero{background:linear-gradient(90deg,rgba(5,2,3,.88) 0%,rgba(5,2,3,.6) 32%,rgba(5,2,3,0) 58%)}
@@ -179,6 +164,46 @@ h3.t em{font-style:normal;color:var(--ember)}
 .rule .btn{width:100%;justify-content:center;margin-top:16px}
 .rule .note{text-align:center}
 
+
+/* hero v2 */
+.mark{font:900 clamp(78px,11vw,168px)/.9 Cinzel,serif;letter-spacing:.02em;margin:14px 0 18px;color:var(--bone);text-shadow:0 0 50px rgba(255,59,47,.2)}
+.mark .b1{color:var(--ember);text-shadow:0 0 44px rgba(255,59,47,.55);animation:pulse 3.6s ease-in-out infinite}
+@keyframes pulse{50%{text-shadow:0 0 70px rgba(255,59,47,.85)}}
+.liveline{margin-top:24px;display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.06em;color:#cdbab5}
+.liveline b{color:var(--ember2);font-weight:700}
+.ldot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ember);box-shadow:0 0 10px var(--ember);animation:blink 1.4s infinite;flex:none}
+.ldot.g{background:var(--up);box-shadow:0 0 10px var(--up)}
+@keyframes blink{50%{opacity:.3}}
+.hero .hint{margin-top:14px}
+.tape{position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--line);background:rgba(8,3,4,.82);overflow:hidden;z-index:2}
+.tape .tl{position:absolute;left:0;top:0;bottom:0;z-index:2;display:flex;align-items:center;gap:8px;padding:0 40px 0 18px;background:linear-gradient(90deg,#080304 80%,rgba(8,3,4,0));font:600 10.5px 'JetBrains Mono';letter-spacing:.16em;color:var(--ember2)}
+.track{display:flex;gap:10px;padding:10px 0 10px 290px;width:max-content;animation:tscroll 70s linear infinite}
+.tape:hover .track{animation-play-state:paused}
+@keyframes tscroll{to{transform:translateX(-50%)}}
+.chip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border:1px solid var(--line2);border-radius:999px;background:var(--card);font-size:12px;white-space:nowrap}
+.chip:hover{border-color:var(--ember)}
+.chip img{width:24px;height:24px;border-radius:50%;object-fit:cover;background:#1a0b0b}
+.chip b{color:var(--bone)}.chip small{color:var(--dim)}
+.scrolldown{display:none}
+/* live columns */
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+.col{border:1px solid var(--line2);border-radius:18px;background:linear-gradient(170deg,#120809,#090405);overflow:hidden;display:flex;flex-direction:column}
+.ch{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.ch span{display:flex;align-items:center;gap:8px}.ch b{font:600 11px 'JetBrains Mono';color:var(--dim);letter-spacing:.04em;text-transform:none}
+.list{height:560px;overflow:auto;scrollbar-width:none}
+.list::-webkit-scrollbar{display:none}
+.it{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line);transition:background .25s}
+.it:hover{background:rgba(255,59,47,.05)}
+.it.fresh{animation:fresh 1.6s ease-out}
+@keyframes fresh{0%{background:rgba(255,138,74,.22);transform:translateX(-8px)}100%{background:transparent;transform:none}}
+.it img{width:40px;height:40px;border-radius:10px;object-fit:cover;background:#1a0b0b}
+.it .nm{min-width:0}.it .nm b{display:block;color:var(--bone);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .nm small{display:block;color:var(--dim);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .r{text-align:right;font-size:12px}.it .r b{display:block;font-weight:700}.it .r small{color:var(--dim);font-size:10.5px}
+.bar{height:3px;border-radius:3px;background:#1a0b0b;margin-top:5px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#7a1410,var(--ember))}
+.mob{display:none}
+@media (max-width:900px){.cols{grid-template-columns:1fr}.col{display:none}.col.on{display:flex}.mob{display:flex}.mark{font-size:84px}.tape .tl{display:none}.track{padding-left:16px}.hero{padding-bottom:120px}}
+
 /* faq */
 .faq .wrap{max-width:900px}
 .faq details{border-bottom:1px solid var(--line)}
@@ -209,37 +234,39 @@ h3.t em{font-style:normal;color:var(--ember)}
 @media (max-width:520px){.wrap{padding:0 16px}.steps{grid-template-columns:1fr}.brand span{display:none}.two{grid-template-columns:1fr}}
 </style>
 </head>
-<body class="locked">
+<body class="entered">
 <canvas id="gl"></canvas>
-<div id="intro"><div id="black"></div>
-  <button id="skip">skip intro ›</button>
-  <div id="title"><h1 id="tt"><b>ber</b>pad</h1><button class="btn pri" id="enter">Enter the ber market</button></div>
-</div>
 <div id="ring"></div>
 <a class="brand" href="#top"><img src="assets/logo.png" alt=""><span><b>ber</b>pad</span></a>
-<nav><div class="pill" id="pill"><i class="hl" id="hl"></i><a href="#why">Why</a><a href="#rule">The rule</a><a href="#how">How</a><a href="#menu">Menu</a><a href="#launch">Launch</a><a href="#faq">FAQ</a></div></nav>
+<nav><div class="pill" id="pill"><i class="hl" id="hl"></i><a href="#live">Live</a><a href="#rule">The rule</a><a href="#how">How</a><a href="#launch">Launch</a><a href="#faq">FAQ</a></div></nav>
 <a class="btn pri sm navcta" href="#launch">Launch</a>
-<div class="rail" id="rail"><a href="#why">I</a><a href="#rule">II</a><a href="#how">III</a><a href="#menu">IV</a><a href="#launch">V</a><a href="#faq">VI</a></div>
+<div class="rail" id="rail"><a href="#live">I</a><a href="#rule">II</a><a href="#how">III</a><a href="#launch">IV</a><a href="#faq">V</a></div>
 
 <main>
 <header class="hero" id="top"><div id="veil"></div>
   <div class="wrap"><div class="htxt">
     <div class="kick">The launchpad for the ber market</div>
-    <h2>Red candles<br><em>get eaten.</em></h2>
-    <p class="lead">berpad launches coins that buy their own dips. Every coin gets a pot. Fees fill it. When the chart bleeds, the ber eats.</p>
-    <div class="cta"><a class="btn pri mag" href="#launch">Launch a coin</a><a class="btn ghost mag" href="#menu">See the menu</a></div>
-    <div class="hint">Click the ber. <i>It bites.</i></div>
+    <h1 class="mark"><span class="b1">ber</span>pad</h1>
+    <p class="lead">Coins that buy their own dips. Every coin gets a pot, its fees fill it, and when the chart bleeds the ber eats.</p>
+    <div class="cta"><a class="btn pri mag" href="#launch">Launch a coin</a><a class="btn ghost mag" href="#live">Live on pump.fun</a></div>
+    <div class="liveline"><i class="ldot"></i><span id="lRate">reading pump.fun…</span></div>
+    <div class="hint">Every head holds a live pump.fun coin. <i>Click one.</i></div>
   </div></div>
-  <div class="scrolldown">SCROLL</div>
+  <div class="tape"><div class="tl"><i class="ldot"></i>JUST LAUNCHED ON PUMP.FUN</div><div class="track" id="tape"></div></div>
 </header>
 
-<div class="band"><div class="bt" id="bt"><span class="f">Red candles get eaten</span><i>✦</i><span>The ber market is open</span><i>✦</i><span class="f">Fees fill the pot</span><i>✦</i><span>Every dip is dinner</span><i>✦</i><span class="f">Red candles get eaten</span><i>✦</i><span>The ber market is open</span><i>✦</i><span class="f">Fees fill the pot</span><i>✦</i><span>Every dip is dinner</span><i>✦</i></div></div>
+<div class="band"><div class="bt" id="bt"><span class="f">The ber market is open</span><i>✦</i><span>Every dip is dinner</span><i>✦</i><span class="f">Fees fill the pot</span><i>✦</i><span>Live on pump.fun</span><i>✦</i><span class="f">The ber market is open</span><i>✦</i><span>Every dip is dinner</span><i>✦</i><span class="f">Fees fill the pot</span><i>✦</i><span>Live on pump.fun</span><i>✦</i></div></div>
 
 <div class="solid">
-<section class="blk" id="why"><div class="wrap">
-  <div class="num rv">I · THE BER MARKET</div>
-  <h3 class="t dec rv">Everything <em>bleeds.</em></h3>
-  <p class="why rv">In a ber market every chart goes red and stays red. Devs <span class="rd">dump</span>, holders <span class="rd">watch</span>, and the coin has nothing in its corner. On berpad the coin has a <span class="rd">pot</span>, and red is when it <span class="rd">fights back</span>.</p>
+<section class="blk" id="live"><div class="wrap">
+  <div class="mtop"><div><div class="num rv">I · LIVE</div><h3 class="t dec rv">Live on <em>pump.fun.</em></h3><p class="sub rv">What's launching, what's running and what's bleeding on pump.fun right now. Read live, refreshed every few seconds. These aren't berpad coins.</p></div>
+    <div class="seg rv mob" id="colTabs"><button data-c="new" class="on">New</button><button data-c="hot">Trending</button><button data-c="red">Bleeding</button></div></div>
+  <div class="cols rv">
+    <div class="col on" data-c="new"><div class="ch"><span><i class="ldot"></i>Just launched</span><b id="cNew">—</b></div><div class="list" id="lNew"><div class="empty">Reading pump.fun…</div></div></div>
+    <div class="col" data-c="hot"><div class="ch"><span><i class="ldot g"></i>Trending · 5m</span><b id="cHot">—</b></div><div class="list" id="lHot"><div class="empty">Reading pump.fun…</div></div></div>
+    <div class="col" data-c="red"><div class="ch"><span><i class="ldot"></i>Bleeding · 1h</span><b id="cRed">—</b></div><div class="list" id="lRed"><div class="empty">Reading pump.fun…</div></div></div>
+  </div>
+  <div class="src" id="lSrc"></div>
 </div></section>
 
 <section class="blk" id="rule" style="padding-top:20px"><div class="wrap">
@@ -272,15 +299,8 @@ h3.t em{font-style:normal;color:var(--ember)}
   </div>
 </div></section>
 
-<section class="blk" id="menu" style="padding-top:20px"><div class="wrap">
-  <div class="mtop"><div><div class="num rv">IV · THE MENU</div><h3 class="t dec rv">Bleeding <em>right now.</em></h3><p class="sub rv">The reddest pump.fun coins on PumpSwap this minute, read live. Not berpad coins. Just what the ber would hunt.</p></div>
-    <div class="seg rv" id="mSort"><button data-k="h1" class="on">1 hour</button><button data-k="h6">6 hours</button><button data-k="h24">24 hours</button></div></div>
-  <div class="panel rows rv"><div class="row h"><span></span><span>Coin</span><span>Change</span><span>Volume</span><span class="c5">Blood</span><span class="c6"></span></div><div id="mRows"><div class="empty">Reading the chain…</div></div></div>
-  <div class="src" id="mSrc"></div>
-</div></section>
-
 <section class="blk" id="launch" style="padding-top:20px"><div class="wrap">
-  <div class="num rv">V · LAUNCH</div>
+  <div class="num rv">IV · LAUNCH</div>
   <h3 class="t dec rv">Feed <em>your ber.</em></h3>
   <p class="sub rv">Set the rule once. It's written into the coin's card and can't be changed after launch.</p>
   <div class="launch rv">
@@ -307,20 +327,20 @@ h3.t em{font-style:normal;color:var(--ember)}
 </div></section>
 
 <section class="blk faq" id="faq" style="padding-top:20px"><div class="wrap">
-  <div class="num rv">VI · FAQ</div>
+  <div class="num rv">V · FAQ</div>
   <h3 class="t dec rv">Questions.</h3>
   <details open><summary>What is berpad?</summary><p>A launchpad for the ber market. Every coin launched on berpad gets a pot that fills from its creator fees and buys the coin's dips by a rule you set at launch. What it buys, it burns.</p></details>
   <details><summary>Can the dev take the pot?</summary><p>No. The pot only does one thing: buy the coin when the rule triggers, then burn what it bought. Every bite is a public transaction with a link.</p></details>
-  <details><summary>Is the launcher live?</summary><p>Launches open with $BERPAD. The menu and the rule preview work today.</p></details>
+  <details><summary>Is the launcher live?</summary><p>Launches open with $BERPAD. The live board and the rule preview work today.</p></details>
   <details><summary>What is hibernation?</summary><p>When a coin goes quiet for the time you picked, the ber stops hunting and the pot just fills. When volume comes back, it wakes up with everything it saved.</p></details>
-  <details><summary>Where does the menu come from?</summary><p>GeckoTerminal's public data for PumpSwap pools on Solana, read live in your browser. Those coins aren't berpad coins.</p></details>
+  <details><summary>Where do the live coins come from?</summary><p>Jupiter's public token data (newest and trending pump.fun launches) and GeckoTerminal's pool data for pump.fun and PumpSwap, read live in your browser. Those coins aren't berpad coins.</p></details>
   <details><summary>Is berpad part of $ber?</summary><p>No. berpad is independent.</p></details>
 </div></section>
 
 <section class="end"><div class="wrap">
   <h3 class="rv">The ber market<br><em>is open.</em></h3>
   <p class="rv">Set the rule. Fill the pot. Let it eat.</p>
-  <div class="cta rv" style="justify-content:center"><a class="btn pri mag" href="#launch">Launch a coin</a><a class="btn ghost mag" href="#menu">See the menu</a></div>
+  <div class="cta rv" style="justify-content:center"><a class="btn pri mag" href="#launch">Launch a coin</a><a class="btn ghost mag" href="#live">Live on pump.fun</a></div>
 </div></section>
 </div>
 </main>
