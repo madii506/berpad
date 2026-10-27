@@ -78,13 +78,16 @@ const PLATES = GALLERY.map((h, i) => {
   sp.scale.set(2.05, .7, 1); sp.position.set(h.position.x, 1.62, h.position.z); sp.userData = { c, coin: null, a: 0, y: 1.62 + (i % 3) * .42 }; S.add(sp); drawPlate(sp, null); return sp;
 });
 const imgCache = new Map();
-function loadImg(url) {
-  if (!url) return Promise.resolve(null); if (imgCache.has(url)) return imgCache.get(url);
-  const p = new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous'; const to = setTimeout(() => res(null), 7000); im.onload = () => { clearTimeout(to); res(im) }; im.onerror = () => { clearTimeout(to); res(null) }; im.src = 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=160&h=160&fit=cover&output=png' });
-  imgCache.set(url, p); return p;
+function loadOne(url, proxy) {
+  return new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous'; const to = setTimeout(() => res(null), 7000); im.onload = () => { clearTimeout(to); res(im.naturalWidth > 1 ? im : null) }; im.onerror = () => { clearTimeout(to); res(null) }; im.src = proxy ? 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=160&h=160&fit=cover&output=png' : url });
+}
+async function loadImg(list) {
+  const key = (list || []).join('|'); if (!key) return null; if (imgCache.has(key)) return imgCache.get(key);
+  const p = (async () => { for (const u of list) { const r = await loadOne(u, !/images\.pump\.fun|wsrv\.nl/.test(u)); if (r) return r } return null })();
+  imgCache.set(key, p); return p;
 }
 let FEED = [], fi = 0;
-async function setPlate(pl, coin) { const img = await loadImg(coin.img); pl.userData.coin = coin; pl.userData.a = 0; drawPlate(pl, coin, img) }
+async function setPlate(pl, coin) { const img = await loadImg(coin.imgs || [coin.img]); pl.userData.coin = coin; pl.userData.a = 0; drawPlate(pl, coin, img) }
 window.addEventListener('ber:coins', e => { FEED = e.detail || []; if (!FEED.length) return; PLATES.forEach((pl, i) => { if (!pl.userData.coin) setPlate(pl, FEED[(fi++) % FEED.length]) }) });
 setInterval(() => { if (!FEED.length || document.hidden) return; const pl = PLATES[Math.random() * PLATES.length | 0]; setPlate(pl, FEED[(fi++) % FEED.length]) }, 2200);
 

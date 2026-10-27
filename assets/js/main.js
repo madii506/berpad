@@ -30,8 +30,8 @@ function nav() {
   window.__berPause = scrollY > innerHeight * 1.3;
 }
 let bx = 0, lastY = scrollY, vel = 0;
-function band() { const dy = scrollY - lastY; lastY = scrollY; vel = vel * .9 + dy * .1; bx -= .6 + Math.abs(vel) * .6; const bt = $('#bt'); const w = bt.scrollWidth / 2; if (-bx > w) bx += w; bt.style.transform = `translateX(${bx}px)`; requestAnimationFrame(band) }
-requestAnimationFrame(band);
+function band_unused() { const dy = scrollY - lastY; lastY = scrollY; vel = vel * .9 + dy * .1; bx -= .6 + Math.abs(vel) * .6; const bt = $('#bt'); const w = bt.scrollWidth / 2; if (-bx > w) bx += w; bt.style.transform = `translateX(${bx}px)`; requestAnimationFrame(band) }
+
 addEventListener('scroll', nav, { passive: true }); addEventListener('resize', nav); nav();
 
 /* ---------- reveal, decrypt, redactions, fuse ---------- */
@@ -106,8 +106,10 @@ const ago = t => { const s = Math.max(0, (Date.now() - new Date(t)) / 1000); ret
 const usd = v => v == null || !isFinite(v) ? '—' : v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + Math.round(v);
 const pct = v => v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : '') + (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)) + '%';
 const tile = s => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2a0c0c"/><text x="32" y="41" text-anchor="middle" font-family="Arial" font-weight="700" font-size="24" fill="#ff8a4a">${String(s || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?'}</text></svg>`);
-window.__img = (el, sym) => { if (!el.dataset.p && el.dataset.src) { el.dataset.p = 1; el.src = 'https://wsrv.nl/?url=' + encodeURIComponent(el.dataset.src) + '&w=96&h=96&fit=cover' } else { el.onerror = null; el.src = tile(sym) } };
-const im = c => c.img ? `<img src="${esc(c.img)}" data-src="${esc(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="__img(this,'${esc((c.sym || '').replace(/'/g, ''))}')">` : `<img src="${tile(c.sym)}" alt="">`;
+window.__img = (el, sym) => { const n = (el.dataset.alt || '').split('|').filter(Boolean); if (n.length) { el.dataset.alt = n.slice(1).join('|'); el.src = n[0] } else { el.onerror = null; el.src = tile(sym) } };
+const pfImg = m => m ? 'https://images.pump.fun/coin-image/' + m + '?variant=86x86' : '';
+const srcs = c => [pfImg(c.mint), c.img, c.img ? 'https://wsrv.nl/?url=' + encodeURIComponent(c.img) + '&w=96&h=96&fit=cover' : ''].filter(Boolean);
+const im = c => { const L = srcs(c); return L.length ? `<img src="${esc(L[0])}" data-alt="${esc(L.slice(1).join('|'))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="__img(this,'${esc((c.sym || '').replace(/'/g, ''))}')">` : `<img src="${tile(c.sym)}" alt="">` };
 const fromJup = t => ({ mint: t.id, sym: t.symbol, name: t.name, img: t.icon, mcap: t.mcap, created: t.firstPool?.createdAt || t.createdAt, c5: t.stats5m?.priceChange, c1: t.stats1h?.priceChange, vol: (t.stats1h?.buyVolume || 0) + (t.stats1h?.sellVolume || 0), holders: t.holderCount, url: 'https://pump.fun/coin/' + t.id });
 let NEW = [], HOT = [], RED = [], SEEN = new Set(), FIRSTLOAD = true, SINCE = 0;
 async function get(u) { const ac = new AbortController(); const to = setTimeout(() => ac.abort(), 9000); try { const r = await fetch(u, { cache: 'no-store', signal: ac.signal }); if (!r.ok) throw new Error(r.status); return await r.json() } finally { clearTimeout(to) } }
@@ -130,7 +132,7 @@ async function loadNew() {
     const ts = L.map(c => +new Date(c.created)).filter(Boolean).sort((a, b) => a - b);
     const rate = ts.length > 3 ? (ts.length - 1) / ((ts.at(-1) - ts[0]) / 60000) : null;
     $('#cNew').textContent = rate ? `~${rate.toFixed(1)}/min` : '';
-    $('#lRate').innerHTML = `<b>${rate ? rate.toFixed(1) : '—'}</b> pump.fun launches a minute right now · <b>${RED.length || '—'}</b> coins bleeding · <b>${SINCE}</b> launched since you got here`;
+    if ($('#lRate')) $('#lRate').innerHTML = `<b>${rate ? rate.toFixed(1) : '—'}</b> pump.fun launches a minute right now · <b>${RED.length || '—'}</b> coins bleeding · <b>${SINCE}</b> launched since you got here`;
     tape(NEW); FIRSTLOAD = false; feed();
   } catch (e) { if (!NEW.length) $('#lNew').innerHTML = '<div class="empty">Jupiter isn\'t answering right now.</div>' }
 }
@@ -152,7 +154,7 @@ async function loadRed() {
 }
 function tape(L) { const C = L.slice(0, 30); if (!C.length) return; const h = C.map(c => `<a class="chip" href="${esc(c.url)}" target="_blank" rel="noopener">${im(c)}<b>$${esc((c.sym || '').slice(0, 12))}</b><small>${usd(c.mcap)} · <span data-ts="${esc(c.created)}">${ago(c.created)}</span></small></a>`).join(''); const tr = $('#tape'); if (tr.dataset.top !== C[0].mint) { tr.dataset.top = C[0].mint; tr.innerHTML = h + h } }
 function feed() {
-  const mk = (c, chg, sub) => ({ sym: c.sym, sub, chg: isFinite(chg) ? chg : 0, img: c.img, url: c.url });
+  const mk = (c, chg, sub) => ({ sym: c.sym, sub, chg: isFinite(chg) ? chg : 0, img: c.img, imgs: srcs(c), url: c.url });
   const F = [...HOT.slice(0, 10).map(c => mk(c, c.c5, '5m · trending')), ...RED.slice(0, 10).map(c => mk(c, c.c1, '1h · bleeding')), ...NEW.slice(0, 10).map(c => mk(c, c.c5, ago(c.created) + ' old · new'))];
   for (let i = F.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0;[F[i], F[j]] = [F[j], F[i]] }
   window.__berCoins = F; window.dispatchEvent(new CustomEvent('ber:coins', { detail: F }));
