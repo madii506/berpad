@@ -2,35 +2,6 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800) };
 
-/* ---------- intro ---------- */
-let entered = false;
-function enter() {
-  if (entered) return; entered = true;
-  document.body.classList.add('entered'); document.body.classList.remove('locked');
-  $('#black').classList.add('off');
-}
-function scrambleTo(el, html, ms = 1100) {
-  const text = el.textContent, glyphs = '█▓▒░#%&@$*+=<>/\\';
-  const t0 = performance.now();
-  const tick = n => { const k = Math.min(1, (n - t0) / ms); const keep = Math.floor(text.length * k);
-    el.textContent = text.slice(0, keep) + Array.from({ length: text.length - keep }, () => glyphs[Math.random() * glyphs.length | 0]).join('');
-    if (k < 1) requestAnimationFrame(tick); else el.innerHTML = html };
-  requestAnimationFrame(tick);
-}
-addEventListener('ber:ready', () => {
-  setTimeout(() => $('#black').classList.add('off'), 500);
-  setTimeout(() => $('#skip').classList.add('show'), 2600);
-});
-addEventListener('ber:intro', () => {
-  if (entered) return;
-  $('#title').classList.add('show'); scrambleTo($('#tt'), '<b>ber</b>pad');
-  setTimeout(() => $('#enter').classList.add('show'), 1300);
-});
-$('#skip').addEventListener('click', () => { window.berSkip && window.berSkip(); enter() });
-$('#enter').addEventListener('click', enter);
-addEventListener('keydown', e => { if (!entered && (e.key === 'Enter' || e.key === 'Escape')) { window.berSkip && window.berSkip(); enter() } });
-setTimeout(() => { if (!window.berSkip) enter() }, 12000);   // no WebGL: open the site anyway
-
 /* ---------- cursor, veil, magnetic ---------- */
 const ring = $('#ring');
 addEventListener('pointermove', e => {
@@ -50,7 +21,7 @@ document.addEventListener('pointermove', e => {
 addEventListener('ber:spark', () => toast('The ber bit back.'));
 
 /* ---------- nav highlight, rail, band, pause ---------- */
-const secs = ['why', 'rule', 'how', 'menu', 'launch', 'faq'].map(id => document.getElementById(id));
+const secs = ['live', 'rule', 'how', 'launch', 'faq'].map(id => document.getElementById(id));
 function nav() {
   let cur = ''; for (const s of secs) if (s.getBoundingClientRect().top < innerHeight * .4) cur = s.id;
   const links = $$('#pill a'); let on = null; links.forEach(a => { const m = a.getAttribute('href') === '#' + cur; a.classList.toggle('on', m); if (m) on = a });
@@ -127,38 +98,71 @@ $('#reroll').addEventListener('click', () => rerun(true));
 gen(); rerun(false); requestAnimationFrame(loop);
 new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) animT = performance.now() }), { threshold: .4 }).observe(cv);
 
-/* ---------- the menu: live PumpSwap pools ---------- */
-const GT = 'https://api.geckoterminal.com/api/v2/networks/solana/dexes/pumpswap/pools';
-let POOLS = [], MK = 'h1';
-const genImg = s => { const t = String(s || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?'; return 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2a0c0c"/><text x="32" y="41" text-anchor="middle" font-family="Arial" font-weight="700" font-size="24" fill="#ff8a4a">${t}</text></svg>`) };
-async function gt(page, inc) {
-  const r = await fetch(`${GT}?page=${page}&sort=h24_volume_usd_desc${inc ? '&include=base_token' : ''}`, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json();
+/* ---------- live pump.fun ---------- */
+const JUP = 'https://lite-api.jup.ag/tokens/v2', GT = 'https://api.geckoterminal.com/api/v2/networks/solana/dexes';
+const BAD = /fuck|shit|cunt|n[i1]gg|fag|retard|porn|nazi|hitler|pedo|rape|kys/i;
+const ok = c => !BAD.test((c.sym || '') + ' ' + (c.name || ''));
+const ago = t => { const s = Math.max(0, (Date.now() - new Date(t)) / 1000); return s < 60 ? Math.round(s) + 's' : s < 3600 ? Math.round(s / 60) + 'm' : s < 86400 ? Math.round(s / 3600) + 'h' : Math.round(s / 86400) + 'd' };
+const usd = v => v == null || !isFinite(v) ? '—' : v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + Math.round(v);
+const pct = v => v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : '') + (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1)) + '%';
+const tile = s => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2a0c0c"/><text x="32" y="41" text-anchor="middle" font-family="Arial" font-weight="700" font-size="24" fill="#ff8a4a">${String(s || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?'}</text></svg>`);
+window.__img = (el, sym) => { if (!el.dataset.p && el.dataset.src) { el.dataset.p = 1; el.src = 'https://wsrv.nl/?url=' + encodeURIComponent(el.dataset.src) + '&w=96&h=96&fit=cover' } else { el.onerror = null; el.src = tile(sym) } };
+const im = c => c.img ? `<img src="${esc(c.img)}" data-src="${esc(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="__img(this,'${esc((c.sym || '').replace(/'/g, ''))}')">` : `<img src="${tile(c.sym)}" alt="">`;
+const fromJup = t => ({ mint: t.id, sym: t.symbol, name: t.name, img: t.icon, mcap: t.mcap, created: t.firstPool?.createdAt || t.createdAt, c5: t.stats5m?.priceChange, c1: t.stats1h?.priceChange, vol: (t.stats1h?.buyVolume || 0) + (t.stats1h?.sellVolume || 0), holders: t.holderCount, url: 'https://pump.fun/coin/' + t.id });
+let NEW = [], HOT = [], RED = [], SEEN = new Set(), FIRSTLOAD = true, SINCE = 0;
+async function get(u) { const ac = new AbortController(); const to = setTimeout(() => ac.abort(), 9000); try { const r = await fetch(u, { cache: 'no-store', signal: ac.signal }); if (!r.ok) throw new Error(r.status); return await r.json() } finally { clearTimeout(to) } }
+function row(c, kind) {
+  const chg = kind === 'new' ? c.c5 : kind === 'hot' ? c.c5 : c.c1;
+  const cl = chg < 0 ? 'dn' : 'up';
+  const sub = kind === 'new' ? `${ago(c.created)} old · ${c.holders ?? '—'} holders` : kind === 'hot' ? `${usd(c.mcap)} · vol ${usd(c.vol)}` : `${usd(c.mcap)} · vol ${usd(c.vol)}`;
+  const right = kind === 'new' ? `<b>${usd(c.mcap)}</b><small class="${cl}">5m ${pct(chg)}</small>` : `<b class="${cl}">${pct(chg)}</b><small>${kind === 'hot' ? '5m' : '1h'}</small>`;
+  const bar = kind === 'red' ? `<div class="bar"><i style="width:${Math.min(100, Math.abs(chg))}%"></i></div>` : '';
+  return `<a class="it${c._fresh ? ' fresh' : ''}" href="${esc(c.url)}" target="_blank" rel="noopener">${im(c)}<span class="nm"><b>$${esc((c.sym || '').slice(0, 14))}</b><small>${esc(sub)}</small>${bar}</span><span class="r">${right}</span></a>`;
 }
-async function loadMenu() {
+function render(id, list, kind, empty) { $(id).innerHTML = list.length ? list.map(c => row(c, kind)).join('') : `<div class="empty">${empty}</div>` }
+async function loadNew() {
   try {
-    let js; try { js = await Promise.all([1, 2, 3].map(p => gt(p, true))) } catch (e) { js = await Promise.all([1, 2].map(p => gt(p, false))) }
-    const toks = {}; js.forEach(j => (j.included || []).forEach(t => toks[t.id] = t.attributes));
-    const BAD = /fuck|shit|cunt|n[i1]gg|fag|retard|porn|nazi|hitler|pedo|rape/i;
-    POOLS = js.flatMap(j => j.data || []).map(p => { const a = p.attributes, tid = p.relationships?.base_token?.data?.id, t = toks[tid] || {};
-      return { pool: a.address, name: a.name, sym: t.symbol || (a.name || '').split(' / ')[0], tname: t.name || '', mint: t.address || (tid || '').replace('solana_', ''), img: t.image_url && !/missing/.test(t.image_url) ? t.image_url : '', ch: a.price_change_percentage || {}, vol: +(a.volume_usd?.h24 || 0), fdv: +(a.fdv_usd || 0), quote: (a.name || '').split(' / ')[1] || '' } })
-      .filter(p => p.quote === 'SOL' && !BAD.test(p.sym + ' ' + p.tname));
-    renderMenu(); $('#mSrc').textContent = `GeckoTerminal · PumpSwap pools on Solana · ${POOLS.length} read · ${new Date().toLocaleTimeString()}`;
-  } catch (e) { if (!POOLS.length) $('#mRows').innerHTML = '<div class="empty">GeckoTerminal isn\'t answering right now. Try again in a minute.</div>' }
+    const j = await get(`${JUP}/recent`); const L = j.filter(t => t.launchpad === 'pump.fun').map(fromJup).filter(ok);
+    L.forEach(c => { if (!SEEN.has(c.mint)) { if (!FIRSTLOAD) { c._fresh = 1; SINCE++ } SEEN.add(c.mint) } });
+    const keep = new Map(NEW.map(c => [c.mint, c])); L.forEach(c => keep.set(c.mint, { ...keep.get(c.mint), ...c }));
+    NEW = [...keep.values()].sort((a, b) => new Date(b.created) - new Date(a.created)).slice(0, 40);
+    render('#lNew', NEW, 'new', 'Nothing new this second.'); NEW.forEach(c => delete c._fresh);
+    const ts = L.map(c => +new Date(c.created)).filter(Boolean).sort((a, b) => a - b);
+    const rate = ts.length > 3 ? (ts.length - 1) / ((ts.at(-1) - ts[0]) / 60000) : null;
+    $('#cNew').textContent = rate ? `~${rate.toFixed(1)}/min` : '';
+    $('#lRate').innerHTML = `<b>${rate ? rate.toFixed(1) : '—'}</b> pump.fun launches a minute right now · <b>${RED.length || '—'}</b> coins bleeding · <b>${SINCE}</b> launched since you got here`;
+    tape(NEW); FIRSTLOAD = false; feed();
+  } catch (e) { if (!NEW.length) $('#lNew').innerHTML = '<div class="empty">Jupiter isn\'t answering right now.</div>' }
 }
-const usd = v => v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + (v / 1e3).toFixed(1) + 'K' : '$' + Math.round(v);
-function renderMenu() {
-  const L = POOLS.map(p => ({ ...p, c: parseFloat(p.ch[MK]) })).filter(p => isFinite(p.c) && p.c < 0 && p.vol > 5000).sort((a, b) => a.c - b.c).slice(0, 14);
-  if (!L.length) { $('#mRows').innerHTML = '<div class="empty">Nothing bleeding on this window. The ber is waiting.</div>'; return }
-  const worst = Math.min(...L.map(p => p.c));
-  $('#mRows').innerHTML = L.map(p => `<a class="row" href="https://dexscreener.com/solana/${encodeURIComponent(p.pool)}" target="_blank" rel="noopener">
-    <img src="${esc(p.img || genImg(p.sym))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${genImg(p.sym)}'">
-    <span class="nm"><b>$${esc(p.sym.slice(0, 14))}</b><small>${esc(p.tname.slice(0, 26))}</small></span>
-    <span class="dn">${p.c.toFixed(1)}%</span><span>${usd(p.vol)}</span>
-    <span class="c5"><span class="meter"><i style="width:${Math.max(6, p.c / worst * 100)}%"></i></span></span>
-    <span class="c6" style="text-align:right;color:var(--dim);font-size:11.5px">chart ↗</span></a>`).join('');
+async function loadHot() {
+  try { const j = await get(`${JUP}/toptrending/5m?limit=100`); HOT = j.filter(t => t.launchpad === 'pump.fun').map(fromJup).filter(ok).slice(0, 30); render('#lHot', HOT, 'hot', 'Nothing trending this minute.'); $('#cHot').textContent = HOT.length + ' coins'; feed() }
+  catch (e) { if (!HOT.length) $('#lHot').innerHTML = '<div class="empty">Jupiter isn\'t answering right now.</div>' }
 }
-$('#mSort').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; MK = b.dataset.k; $$('#mSort button').forEach(x => x.classList.toggle('on', x === b)); renderMenu() });
-loadMenu(); setInterval(() => { if (!document.hidden) loadMenu() }, 90000);
+async function loadRed() {
+  try {
+    const js = await Promise.all([get(`${GT}/pump-fun/pools?page=1&sort=h24_volume_usd_desc&include=base_token`), get(`${GT}/pumpswap/pools?page=1&sort=h24_volume_usd_desc&include=base_token`)].map(p => p.catch(() => null)));
+    const toks = {}; js.forEach(j => (j?.included || []).forEach(t => toks[t.id] = t.attributes));
+    const L = js.flatMap(j => j?.data || []).map(p => { const a = p.attributes, t = toks[p.relationships?.base_token?.data?.id] || {}; const mint = t.address || '';
+      return { mint, sym: t.symbol || (a.name || '').split(' / ')[0], name: t.name, img: t.image_url && !/missing/.test(t.image_url) ? t.image_url : '', mcap: +a.fdv_usd, vol: +(a.volume_usd?.h1 || a.volume_usd?.h24 || 0), c1: parseFloat(a.price_change_percentage?.h1), url: mint ? 'https://pump.fun/coin/' + mint : 'https://dexscreener.com/solana/' + a.address, q: (a.name || '').split(' / ')[1] } })
+      .filter(c => c.q === 'SOL' && isFinite(c.c1) && c.c1 < -3 && ok(c));
+    const seen = new Set(); RED = L.filter(c => !seen.has(c.mint) && seen.add(c.mint)).sort((a, b) => a.c1 - b.c1).slice(0, 30);
+    render('#lRed', RED, 'red', 'Nothing bleeding right now. The ber is waiting.'); $('#cRed').textContent = RED.length + ' coins'; feed();
+  } catch (e) { if (!RED.length) $('#lRed').innerHTML = '<div class="empty">GeckoTerminal isn\'t answering right now.</div>' }
+  $('#lSrc').textContent = `Jupiter (newest + trending pump.fun launches) · GeckoTerminal (pump.fun + PumpSwap pools) · updated ${new Date().toLocaleTimeString()}`;
+}
+function tape(L) { const C = L.slice(0, 30); if (!C.length) return; const h = C.map(c => `<a class="chip" href="${esc(c.url)}" target="_blank" rel="noopener">${im(c)}<b>$${esc((c.sym || '').slice(0, 12))}</b><small>${usd(c.mcap)} · <span data-ts="${esc(c.created)}">${ago(c.created)}</span></small></a>`).join(''); const tr = $('#tape'); if (tr.dataset.top !== C[0].mint) { tr.dataset.top = C[0].mint; tr.innerHTML = h + h } }
+function feed() {
+  const mk = (c, chg, sub) => ({ sym: c.sym, sub, chg: isFinite(chg) ? chg : 0, img: c.img, url: c.url });
+  const F = [...HOT.slice(0, 10).map(c => mk(c, c.c5, '5m · trending')), ...RED.slice(0, 10).map(c => mk(c, c.c1, '1h · bleeding')), ...NEW.slice(0, 10).map(c => mk(c, c.c5, ago(c.created) + ' old · new'))];
+  for (let i = F.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0;[F[i], F[j]] = [F[j], F[i]] }
+  window.__berCoins = F; window.dispatchEvent(new CustomEvent('ber:coins', { detail: F }));
+}
+$('#colTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#colTabs button').forEach(x => x.classList.toggle('on', x === b)); $$('.col').forEach(c => c.classList.toggle('on', c.dataset.c === b.dataset.c)) });
+setInterval(() => $$('[data-ts]').forEach(el => el.textContent = ago(el.dataset.ts)), 5000);
+loadRed().then(loadNew); loadHot();
+setInterval(() => { if (!document.hidden) loadNew() }, 12000);
+setInterval(() => { if (!document.hidden) loadHot() }, 30000);
+setInterval(() => { if (!document.hidden) loadRed() }, 60000);
 
 /* ---------- launch rule card ---------- */
 const R = { trig: 25, share: 50, bite: 30, hib: 24 };
