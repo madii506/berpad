@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>berpad</title>
+<meta name="description" content="The launchpad for the ber market. Coins that buy their own dips.">
+<meta property="og:title" content="berpad">
+<meta property="og:description" content="The launchpad for the ber market. Red candles get eaten.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"./assets/vendor/three.module.min.js","three/addons/":"./assets/vendor/"}}</script>
+<style>
+:root{--bg:#050203;--bg2:#0a0405;--card:#0e0708;--line:#24120f;--line2:#3a1a16;--bone:#ebe5da;--mut:#a8938f;--dim:#6e5a57;--ember:#ff3b2f;--ember2:#ff8a4a;--up:#4ade80}
+*{box-sizing:border-box}
+html{scrollbar-width:none;overflow-x:clip}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
+body{margin:0;background:var(--bg);color:var(--bone);font:15px/1.65 'JetBrains Mono',ui-monospace,monospace;overflow-x:clip;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+a{color:inherit;text-decoration:none}
+.serif{font-family:Cinzel,serif}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0}
+main{position:relative;z-index:2}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+/* intro */
+#intro{position:fixed;inset:0;z-index:40;pointer-events:none}
+#black{position:absolute;inset:0;background:#000;transition:opacity 1.6s ease}
+#black.off{opacity:0}
+#skip{position:absolute;right:28px;bottom:26px;pointer-events:auto;font:500 12px 'JetBrains Mono';letter-spacing:.2em;text-transform:uppercase;color:var(--mut);opacity:0;transition:opacity .8s;cursor:pointer;background:none;border:0}
+#skip.show{opacity:.8}#skip:hover{color:var(--bone)}
+#title{position:absolute;left:7vw;bottom:20vh;text-align:left;opacity:0;transition:opacity .8s}
+@media (max-width:900px){#title{left:0;right:0;bottom:12vh;text-align:center}}
+#title.show{opacity:1}
+#title h1{margin:0;font:900 clamp(56px,10vw,140px)/1 Cinzel,serif;letter-spacing:.08em;color:var(--bone);text-shadow:0 0 40px rgba(255,59,47,.35)}
+#title h1 b{color:var(--ember);font-weight:900}
+#enter{margin-top:22px;pointer-events:auto;opacity:0;transform:translateY(10px);transition:.8s}
+#enter.show{opacity:1;transform:none}
+body.entered #intro{display:none}
+
+/* nav */
+nav{position:fixed;top:16px;left:50%;transform:translate(-50%,-90px);z-index:30;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+body.entered nav{transform:translate(-50%,0)}
+.pill{position:relative;display:flex;gap:2px;padding:5px;border-radius:999px;background:rgba(14,7,8,.72);border:1px solid var(--line2);backdrop-filter:blur(14px)}
+.pill a{position:relative;z-index:1;padding:8px 15px;border-radius:999px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);transition:color .3s}
+.pill a.on{color:var(--bone)}
+.pill .hl{position:absolute;top:5px;bottom:5px;border-radius:999px;background:rgba(255,59,47,.16);border:1px solid rgba(255,59,47,.35);transition:left .45s cubic-bezier(.2,.7,.2,1),width .45s cubic-bezier(.2,.7,.2,1)}
+.brand{position:fixed;top:18px;left:24px;z-index:30;display:flex;align-items:center;gap:10px;font:700 18px Cinzel,serif;letter-spacing:.06em;opacity:0;transition:opacity .8s}
+.brand img{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(255,59,47,.35))}
+.brand b{color:var(--ember)}
+.btn.navcta{position:fixed;top:18px;right:24px;z-index:30;opacity:0;transition:opacity .8s}
+body.entered .brand,body.entered .navcta{opacity:1}
+.rail{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;gap:12px;opacity:0;transition:opacity .8s}
+body.entered .rail{opacity:1}
+.rail a{font:500 10px 'JetBrains Mono';letter-spacing:.14em;color:var(--dim);text-align:right;transition:color .3s}
+.rail a.on{color:var(--ember)}
+
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 22px;border-radius:999px;font:600 13px 'JetBrains Mono';letter-spacing:.06em;text-transform:uppercase;border:1px solid transparent;cursor:pointer;transition:background .25s,border-color .25s,color .25s,box-shadow .25s;will-change:transform;white-space:nowrap}
+.btn.pri{background:var(--ember);color:#160303;box-shadow:0 0 30px rgba(255,59,47,.35)}
+.btn.pri:hover{background:#ff5a45;box-shadow:0 0 44px rgba(255,59,47,.55)}
+.btn.ghost{background:rgba(14,7,8,.5);border-color:var(--line2);color:var(--bone)}
+.btn.ghost:hover{border-color:var(--ember)}
+.btn.sm{height:38px;padding:0 16px;font-size:11.5px}
+.btn[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none}
+
+/* hero */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center}
+#veil{position:absolute;inset:0;pointer-events:none;background:rgba(0,0,0,.34);-webkit-mask-image:radial-gradient(circle 320px at var(--mx,50%) var(--my,50%),transparent 0,#000 100%);mask-image:radial-gradient(circle 320px at var(--mx,50%) var(--my,50%),transparent 0,#000 100%);opacity:0;transition:opacity 1s}
+body.entered #veil{opacity:1}
+.hero{background:linear-gradient(90deg,rgba(5,2,3,.88) 0%,rgba(5,2,3,.6) 32%,rgba(5,2,3,0) 58%)}
+.hero .wrap{width:100%;position:relative;z-index:1}
+.htxt{max-width:540px;opacity:0;transform:translateY(20px);transition:opacity 1.2s .3s,transform 1.2s .3s}
+body.entered .htxt{opacity:1;transform:none}
+.kick{font:500 11.5px 'JetBrains Mono';letter-spacing:.26em;text-transform:uppercase;color:var(--ember2)}
+.hero h2{font:900 clamp(44px,6.2vw,82px)/1 Cinzel,serif;letter-spacing:.02em;margin:18px 0 18px}
+.hero h2 em{font-style:normal;color:var(--ember);text-shadow:0 0 36px rgba(255,59,47,.45)}
+.lead{color:#cdbab5;font-size:15.5px;max-width:470px;margin:0 0 26px}
+.cta{display:flex;gap:10px;flex-wrap:wrap}
+.hint{margin-top:26px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.hint i{font-style:normal;color:var(--ember2)}
+.scrolldown{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);font-size:10px;letter-spacing:.3em;color:var(--dim);opacity:0;transition:opacity 1s 1s}
+body.entered .scrolldown{opacity:1}
+.scrolldown::after{content:'';display:block;width:1px;height:38px;margin:10px auto 0;background:linear-gradient(var(--ember),transparent);animation:drip 2s infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* sections */
+.solid{position:relative;background:linear-gradient(180deg,rgba(5,2,3,0) 0,var(--bg) 160px)}
+section.blk{padding:120px 0}
+.num{font:700 13px Cinzel,serif;letter-spacing:.3em;color:var(--ember)}
+h3.t{font:900 clamp(32px,4.6vw,56px)/1.05 Cinzel,serif;margin:14px 0 16px;letter-spacing:.01em}
+h3.t em{font-style:normal;color:var(--ember)}
+.sub{color:var(--mut);max-width:620px;margin:0}
+.rv{opacity:0;transform:translateY(24px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}
+.rv.shown{opacity:1;transform:none}
+.band{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2);padding:20px 0}
+.bt{display:flex;gap:40px;width:max-content;font:900 clamp(30px,4.4vw,56px) Cinzel,serif;letter-spacing:.04em;white-space:nowrap}
+.bt span{color:transparent;-webkit-text-stroke:1px rgba(255,59,47,.6)}
+.bt span.f{color:var(--ember);-webkit-text-stroke:0;text-shadow:0 0 24px rgba(255,59,47,.4)}
+.bt i{font-style:normal;color:var(--dim)}
+
+/* why */
+.why{font:500 clamp(20px,2.6vw,30px)/1.5 Cinzel,serif;max-width:940px;margin:24px 0 0;color:#d9c9c4}
+.rd{position:relative;white-space:nowrap}
+.rd::after{content:'';position:absolute;left:-2px;right:-2px;top:12%;bottom:8%;background:#000;box-shadow:inset 0 0 0 1px rgba(255,59,47,.35);transition:transform .9s cubic-bezier(.7,0,.2,1);transform-origin:right}
+.rd.open::after{transform:scaleX(0)}
+.rd.open{color:var(--ember)}
+
+/* sim */
+.sim{display:grid;grid-template-columns:1fr 330px;gap:22px;margin-top:40px}
+.panel{border:1px solid var(--line2);border-radius:18px;background:linear-gradient(170deg,#120809,#090405);overflow:hidden;position:relative}
+.panel .top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+#simc{display:block;width:100%;height:380px}
+.ctl{padding:20px}
+.ctl label{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.ctl .v{float:right;color:var(--bone);letter-spacing:0}
+.ctl input[type=range]{width:100%;accent-color:var(--ember);margin:0 0 18px}
+.stat{border-top:1px solid var(--line);padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat b{display:block;font:700 24px 'JetBrains Mono';color:var(--bone)}
+.stat span{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.note{font-size:11.5px;color:var(--dim);margin-top:12px}
+
+/* how */
+.steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px}
+.steps::before{content:'';position:absolute;left:0;right:0;top:34px;height:1px;background:var(--line2)}
+.steps .fuse{position:absolute;left:0;top:34px;height:2px;width:0;background:linear-gradient(90deg,var(--ember),#ffb27a);box-shadow:0 0 14px var(--ember);transition:width 2.4s cubic-bezier(.4,0,.2,1)}
+.steps.lit .fuse{width:100%}
+.step{position:relative;border:1px solid var(--line2);border-radius:16px;background:var(--card);padding:62px 20px 22px;transition:border-color .6s,box-shadow .6s;transform-style:preserve-3d}
+.step .dot{position:absolute;top:26px;left:20px;width:16px;height:16px;border-radius:50%;background:#1a0b0b;border:1px solid var(--line2);transition:.5s}
+.step.lit{border-color:rgba(255,59,47,.45);box-shadow:0 0 40px rgba(255,59,47,.1)}
+.step.lit .dot{background:var(--ember);box-shadow:0 0 18px var(--ember);border-color:var(--ember)}
+.step h4{font:700 19px Cinzel,serif;margin:0 0 8px}
+.step p{margin:0;color:var(--mut);font-size:13.5px}
+.step .n{position:absolute;top:22px;right:20px;font:700 12px Cinzel,serif;color:var(--dim)}
+.glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,140,90,.13),transparent 45%);opacity:0;transition:opacity .3s}
+.tilt:hover .glare{opacity:1}
+
+/* menu */
+.mtop{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--line2);border-radius:999px;padding:4px;background:var(--card)}
+.seg button{border:0;background:none;color:var(--mut);font:600 11.5px 'JetBrains Mono';letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;cursor:pointer}
+.seg button.on{background:rgba(255,59,47,.16);color:var(--bone)}
+.rows{margin-top:24px}
+.row{display:grid;grid-template-columns:36px 1.4fr .8fr .8fr 1fr 110px;gap:14px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);transition:background .25s}
+.row:hover{background:rgba(255,59,47,.05)}
+.row.h{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);border-bottom-color:var(--line2)}
+.row img{width:34px;height:34px;border-radius:9px;object-fit:cover;background:#1a0b0b}
+.row .nm b{display:block;font-weight:700;color:var(--bone)}
+.row .nm small{color:var(--dim);font-size:11.5px}
+.dn{color:var(--ember)}.up{color:var(--up)}
+.meter{height:6px;border-radius:6px;background:#1a0b0b;overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,#7a1410,var(--ember));box-shadow:0 0 10px var(--ember)}
+.src{font-size:11px;color:var(--dim);margin-top:12px}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+
+/* launch */
+.launch{display:grid;grid-template-columns:1fr 380px;gap:22px;margin-top:40px}
+.form{border:1px solid var(--line2);border-radius:18px;background:var(--card);padding:24px}
+.f{margin-bottom:16px}
+.f label{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.in{width:100%;height:46px;border-radius:12px;border:1px solid var(--line2);background:#070304;color:var(--bone);padding:0 14px;font:500 14px 'JetBrains Mono';outline:none;transition:border-color .25s,box-shadow .25s}
+.in:focus{border-color:var(--ember);box-shadow:0 0 0 4px rgba(255,59,47,.12)}
+.in.tk{text-transform:uppercase}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line2);background:#070304;color:var(--mut);font:600 12px 'JetBrains Mono';padding:9px 13px;border-radius:10px;cursor:pointer;transition:.2s}
+.chips button.on{border-color:var(--ember);color:var(--bone);background:rgba(255,59,47,.12)}
+.img{display:flex;align-items:center;gap:12px}
+.imgbox{width:52px;height:52px;border-radius:12px;border:1px dashed var(--line2);display:grid;place-items:center;color:var(--dim);cursor:pointer;overflow:hidden;background:#070304}
+.imgbox img{width:100%;height:100%;object-fit:cover}
+.rule{border:1px solid rgba(255,59,47,.4);border-radius:18px;background:radial-gradient(120% 80% at 50% 0%,rgba(255,59,47,.1),transparent 60%),#0b0506;padding:22px;position:sticky;top:90px}
+.rule .hd{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.rule .hd .imgbox{border-style:solid;cursor:default}
+.rule h5{margin:0;font:700 20px Cinzel,serif}
+.rule .tk{color:var(--ember);font-size:13px}
+.rl{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rl:last-of-type{border:0}
+.rl span{color:var(--mut)}
+.rl b{color:var(--bone);font-weight:600;text-align:right}
+.rule .btn{width:100%;justify-content:center;margin-top:16px}
+.rule .note{text-align:center}
+
+/* faq */
+.faq .wrap{max-width:900px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:20px 0;font:700 18px Cinzel,serif}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--ember);font:400 22px 'JetBrains Mono';transition:transform .3s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{margin:0 0 20px;color:var(--mut)}
+.end{text-align:center;padding:140px 0 150px}
+.end h3{font:900 clamp(40px,6vw,80px)/1.02 Cinzel,serif;margin:0 0 22px}
+.end h3 em{font-style:normal;color:var(--ember);text-shadow:0 0 40px rgba(255,59,47,.45)}
+.end p{color:var(--mut);margin:0 0 30px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:60;background:var(--ember);color:#160303;font:700 12px 'JetBrains Mono';letter-spacing:.06em;padding:12px 18px;border-radius:999px;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+#ring{position:fixed;width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,138,74,.6);pointer-events:none;z-index:70;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;mix-blend-mode:screen}
+@media (hover:none){#ring{display:none}}
+
+@media (max-width:900px){
+  .pill{display:none}.rail{display:none}
+  .hero{align-items:flex-end;padding-bottom:90px;background:linear-gradient(180deg,rgba(5,2,3,0) 30%,rgba(5,2,3,.85) 62%,rgba(5,2,3,.95) 100%)}
+  .hero h2{font-size:44px}
+  .sim,.launch{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}.steps::before,.steps .fuse{display:none}
+  .row{grid-template-columns:34px 1fr 70px 80px}.row .c5,.row .c6{display:none}
+  .rule{position:relative;top:0}
+  section.blk{padding:84px 0}
+}
+@media (max-width:520px){.wrap{padding:0 16px}.steps{grid-template-columns:1fr}.brand span{display:none}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="locked">
+<canvas id="gl"></canvas>
+<div id="intro"><div id="black"></div>
+  <button id="skip">skip intro ›</button>
+  <div id="title"><h1 id="tt"><b>ber</b>pad</h1><button class="btn pri" id="enter">Enter the ber market</button></div>
+</div>
+<div id="ring"></div>
+<a class="brand" href="#top"><img src="assets/logo.png" alt=""><span><b>ber</b>pad</span></a>
+<nav><div class="pill" id="pill"><i class="hl" id="hl"></i><a href="#why">Why</a><a href="#rule">The rule</a><a href="#how">How</a><a href="#menu">Menu</a><a href="#launch">Launch</a><a href="#faq">FAQ</a></div></nav>
+<a class="btn pri sm navcta" href="#launch">Launch</a>
+<div class="rail" id="rail"><a href="#why">I</a><a href="#rule">II</a><a href="#how">III</a><a href="#menu">IV</a><a href="#launch">V</a><a href="#faq">VI</a></div>
+
+<main>
+<header class="hero" id="top"><div id="veil"></div>
+  <div class="wrap"><div class="htxt">
+    <div class="kick">The launchpad for the ber market</div>
+    <h2>Red candles<br><em>get eaten.</em></h2>
+    <p class="lead">berpad launches coins that buy their own dips. Every coin gets a pot. Fees fill it. When the chart bleeds, the ber eats.</p>
+    <div class="cta"><a class="btn pri mag" href="#launch">Launch a coin</a><a class="btn ghost mag" href="#menu">See the menu</a></div>
+    <div class="hint">Click the ber. <i>It bites.</i></div>
+  </div></div>
+  <div class="scrolldown">SCROLL</div>
+</header>
+
+<div class="band"><div class="bt" id="bt"><span class="f">Red candles get eaten</span><i>✦</i><span>The ber market is open</span><i>✦</i><span class="f">Fees fill the pot</span><i>✦</i><span>Every dip is dinner</span><i>✦</i><span class="f">Red candles get eaten</span><i>✦</i><span>The ber market is open</span><i>✦</i><span class="f">Fees fill the pot</span><i>✦</i><span>Every dip is dinner</span><i>✦</i></div></div>
+
+<div class="solid">
+<section class="blk" id="why"><div class="wrap">
+  <div class="num rv">I · THE BER MARKET</div>
+  <h3 class="t dec rv">Everything <em>bleeds.</em></h3>
+  <p class="why rv">In a ber market every chart goes red and stays red. Devs <span class="rd">dump</span>, holders <span class="rd">watch</span>, and the coin has nothing in its corner. On berpad the coin has a <span class="rd">pot</span>, and red is when it <span class="rd">fights back</span>.</p>
+</div></section>
+
+<section class="blk" id="rule" style="padding-top:20px"><div class="wrap">
+  <div class="num rv">II · THE RULE</div>
+  <h3 class="t dec rv">The ber eats <em>the dip.</em></h3>
+  <p class="sub rv">Each coin's creator fees fill its pot. When the price falls far enough from its recent high, the pot buys and burns. Drag the sliders to see the rule work on a chart.</p>
+  <div class="sim rv">
+    <div class="panel"><div class="top"><span>Rule preview</span><span id="simTag">generated chart</span></div><canvas id="simc"></canvas></div>
+    <div class="panel">
+      <div class="ctl">
+        <label>Bite when down from the high <span class="v" id="vTrig">25%</span></label><input type="range" id="sTrig" min="10" max="50" step="5" value="25">
+        <label>Pot spent per bite <span class="v" id="vBite">30%</span></label><input type="range" id="sBite" min="10" max="60" step="5" value="30">
+        <label>Pot to start <span class="v" id="vPot">10 SOL</span></label><input type="range" id="sPot" min="2" max="50" step="1" value="10">
+        <button class="btn ghost sm" id="reroll" style="width:100%;justify-content:center">New chart</button>
+      </div>
+      <div class="stat"><div><b id="oBites">—</b><span>dips eaten</span></div><div><b id="oSpent">—</b><span>SOL spent</span></div><div><b id="oLeft">—</b><span>left in pot</span></div><div><b id="oDeep">—</b><span>deepest bite</span></div></div>
+    </div>
+  </div>
+  <div class="note rv">A generated chart to show how the rule behaves. Not a forecast, not a real coin.</div>
+</div></section>
+
+<section class="blk" id="how" style="padding-top:20px"><div class="wrap">
+  <div class="num rv">III · HOW IT WORKS</div>
+  <h3 class="t dec rv">Four moves. <em>One appetite.</em></h3>
+  <div class="steps" id="steps"><i class="fuse"></i>
+    <div class="step tilt"><i class="glare"></i><span class="dot"></span><span class="n">01</span><h4>Launch</h4><p>Your coin launches on pump.fun through berpad. You set its dip rule once. It can't be changed later.</p></div>
+    <div class="step tilt"><i class="glare"></i><span class="dot"></span><span class="n">02</span><h4>The pot fills</h4><p>Part of the coin's creator fee goes into its own pot. You keep the rest.</p></div>
+    <div class="step tilt"><i class="glare"></i><span class="dot"></span><span class="n">03</span><h4>The ber eats</h4><p>When the price falls past the trigger from its recent high, the pot buys the dip and burns it. Every bite is a public transaction.</p></div>
+    <div class="step tilt"><i class="glare"></i><span class="dot"></span><span class="n">04</span><h4>Hibernation</h4><p>If the coin goes quiet, it hibernates. The pot keeps filling. When volume comes back, the ber wakes up hungry.</p></div>
+  </div>
+</div></section>
+
+<section class="blk" id="menu" style="padding-top:20px"><div class="wrap">
+  <div class="mtop"><div><div class="num rv">IV · THE MENU</div><h3 class="t dec rv">Bleeding <em>right now.</em></h3><p class="sub rv">The reddest pump.fun coins on PumpSwap this minute, read live. Not berpad coins. Just what the ber would hunt.</p></div>
+    <div class="seg rv" id="mSort"><button data-k="h1" class="on">1 hour</button><button data-k="h6">6 hours</button><button data-k="h24">24 hours</button></div></div>
+  <div class="panel rows rv"><div class="row h"><span></span><span>Coin</span><span>Change</span><span>Volume</span><span class="c5">Blood</span><span class="c6"></span></div><div id="mRows"><div class="empty">Reading the chain…</div></div></div>
+  <div class="src" id="mSrc"></div>
+</div></section>
+
+<section class="blk" id="launch" style="padding-top:20px"><div class="wrap">
+  <div class="num rv">V · LAUNCH</div>
+  <h3 class="t dec rv">Feed <em>your ber.</em></h3>
+  <p class="sub rv">Set the rule once. It's written into the coin's card and can't be changed after launch.</p>
+  <div class="launch rv">
+    <div class="form">
+      <div class="two"><div class="f"><label for="lName">Name</label><input class="in" id="lName" maxlength="32" placeholder="Coin name" autocomplete="off"></div><div class="f"><label for="lTk">Ticker</label><input class="in tk" id="lTk" maxlength="10" placeholder="TICKER" autocomplete="off"></div></div>
+      <div class="f"><label>Image</label><div class="img"><label class="imgbox" for="lImg" id="lImgBox">+</label><input type="file" id="lImg" accept="image/*" hidden><span style="font-size:12px;color:var(--dim)">Stays in your browser for the preview.</span></div></div>
+      <div class="f"><label>Bite when down from the high</label><div class="chips" data-f="trig"><button data-v="15">15%</button><button data-v="25" class="on">25%</button><button data-v="35">35%</button><button data-v="50">50%</button></div></div>
+      <div class="f"><label>Share of creator fees to the pot</label><div class="chips" data-f="share"><button data-v="25">25%</button><button data-v="50" class="on">50%</button><button data-v="75">75%</button><button data-v="100">100%</button></div></div>
+      <div class="f"><label>Pot spent per bite</label><div class="chips" data-f="bite"><button data-v="20">20%</button><button data-v="30" class="on">30%</button><button data-v="50">50%</button></div></div>
+      <div class="f" style="margin:0"><label>Hibernate after</label><div class="chips" data-f="hib"><button data-v="12">12h quiet</button><button data-v="24" class="on">24h quiet</button><button data-v="48">48h quiet</button></div></div>
+    </div>
+    <div class="rule tilt"><i class="glare"></i>
+      <div class="hd"><div class="imgbox" id="rImg">?</div><div><h5 id="rName">Your coin</h5><div class="tk" id="rTk">$TICKER</div></div></div>
+      <div class="rl"><span>Bites at</span><b id="rTrig">−25% from the high</b></div>
+      <div class="rl"><span>Pot gets</span><b id="rShare">50% of creator fees</b></div>
+      <div class="rl"><span>Each bite spends</span><b id="rBite">30% of the pot</b></div>
+      <div class="rl"><span>Bought coins</span><b>Burned</b></div>
+      <div class="rl"><span>Hibernates after</span><b id="rHib">24h quiet</b></div>
+      <div class="rl"><span>Rule</span><b>Locked at launch</b></div>
+      <button class="btn pri" disabled>Launches open with $BERPAD</button>
+      <div class="note">The launcher isn't live yet. The rule above is exactly what you'll set.</div>
+    </div>
+  </div>
+</div></section>
+
+<section class="blk faq" id="faq" style="padding-top:20px"><div class="wrap">
+  <div class="num rv">VI · FAQ</div>
+  <h3 class="t dec rv">Questions.</h3>
+  <details open><summary>What is berpad?</summary><p>A launchpad for the ber market. Every coin launched on berpad gets a pot that fills from its creator fees and buys the coin's dips by a rule you set at launch. What it buys, it burns.</p></details>
+  <details><summary>Can the dev take the pot?</summary><p>No. The pot only does one thing: buy the coin when the rule triggers, then burn what it bought. Every bite is a public transaction with a link.</p></details>
+  <details><summary>Is the launcher live?</summary><p>Launches open with $BERPAD. The menu and the rule preview work today.</p></details>
+  <details><summary>What is hibernation?</summary><p>When a coin goes quiet for the time you picked, the ber stops hunting and the pot just fills. When volume comes back, it wakes up with everything it saved.</p></details>
+  <details><summary>Where does the menu come from?</summary><p>GeckoTerminal's public data for PumpSwap pools on Solana, read live in your browser. Those coins aren't berpad coins.</p></details>
+  <details><summary>Is berpad part of $ber?</summary><p>No. berpad is independent.</p></details>
+</div></section>
+
+<section class="end"><div class="wrap">
+  <h3 class="rv">The ber market<br><em>is open.</em></h3>
+  <p class="rv">Set the rule. Fill the pot. Let it eat.</p>
+  <div class="cta rv" style="justify-content:center"><a class="btn pri mag" href="#launch">Launch a coin</a><a class="btn ghost mag" href="#menu">See the menu</a></div>
+</div></section>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+<script type="module" src="assets/js/main.js"></script>
+<script type="module" src="assets/js/scene.js"></script>
+</body>
+</html>
